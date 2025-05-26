@@ -48,18 +48,16 @@ class temp(object):
     IMDB_CAP = {}
 
 
-async def pub_is_subscribed(bot, query, channel):
+async def pub_is_subscribed(bot, query, channel_list):
     btn = []
-    for id in channel:
-        chat = await bot.get_chat(int(id))
+    for id in channel_list:
         try:
+            chat = await bot.get_chat(int(id))
             await bot.get_chat_member(id, query.from_user.id)
         except UserNotParticipant:
-            btn.append(
-                [InlineKeyboardButton(f'Join {chat.title}', url=chat.invite_link)]
-            )
+            btn.append([InlineKeyboardButton(f'Join {chat.title}', url=chat.invite_link)])
         except Exception as e:
-            pass
+            logger.exception(e)
     return btn
 
 async def is_subscribed(bot, query):
@@ -69,29 +67,31 @@ async def is_subscribed(bot, query):
             if user and user["user_id"] == query.from_user.id:
                 return True
             else:
-                try:
-                    user_data = await bot.get_chat_member(AUTH_CHANNEL, query.from_user.id)
-                except UserNotParticipant:
-                    pass
-                except Exception as e:
-                    logger.exception(e)
-                else:
-                    if user_data.status != enums.ChatMemberStatus.BANNED:
-                        return True
+                for channel in AUTH_CHANNEL:
+                    try:
+                        user_data = await bot.get_chat_member(channel, query.from_user.id)
+                        if user_data.status == enums.ChatMemberStatus.BANNED:
+                            return False
+                    except UserNotParticipant:
+                        return False
+                    except Exception as e:
+                        logger.exception(e)
+                return True
         except Exception as e:
             logger.exception(e)
             return False
     else:
-        try:
-            user = await bot.get_chat_member(AUTH_CHANNEL, query.from_user.id)
-        except UserNotParticipant:
-            pass
-        except Exception as e:
-            logger.exception(e)
-        else:
-            if user.status != enums.ChatMemberStatus.BANNED:
-                return True
-        return False
+        for channel in AUTH_CHANNEL:
+            try:
+                user = await bot.get_chat_member(channel, query.from_user.id)
+                if user.status == enums.ChatMemberStatus.BANNED:
+                    return False
+            except UserNotParticipant:
+                return False
+            except Exception as e:
+                logger.exception(e)
+        return True
+
 
 async def get_poster(query, bulk=False, id=False, file=None):
     if not id:
