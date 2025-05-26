@@ -39,7 +39,7 @@ TRY_AGAIN_BTN = bool(environ.get('TRY_AGAIN_BTN', False)) # Set True Or False (T
 # This Is Force Subscribe Channel, also known as Auth Channel 
 auth_channel = environ.get('AUTH_CHANNEL', '-1001903888279,-1001914187748,-1001547042321').split(',')
  # give your force subscribe channel id here else leave it blank
-AUTH_CHANNEL = [int(ch) for ch in auth_channel_list if id_pattern.match(ch)]
+AUTH_CHANNEL = [int(ch) for ch in auth_channel if id_pattern.match(ch)]
 
 # This Channel Is For When User Request Any File Name With command or hashtag like - /request or #request
 reqst_channel = environ.get('REQST_CHANNEL', '')
